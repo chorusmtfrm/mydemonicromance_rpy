@@ -139,10 +139,10 @@ export default function DashboardPage() {
 
   // surface a few priority pages
   const FEATURED_SLUGS = [
-    "mechanics/combat",
+    "dev/codebase-audit",
+    "dev/aio-template",
     "mechanics/corruption",
     "mechanics/cure-quest",
-    "characters/ryoka",
     "plot/endings",
     "dev/variables",
   ]

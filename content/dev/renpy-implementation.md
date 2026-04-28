@@ -4,14 +4,28 @@ category: Dev Reference
 route: shared
 status: canonical
 order: 4
-summary: Working Ren'Py code for every system in the design. Copy-paste ready. Proof that the wiki describes a buildable game, not a wishlist.
-tags: [renpy, code, architecture, feasibility]
+summary: Working Ren'Py code for every system in the design, adapted to the AIO Template's conventions. Copy-paste ready against the actual scaffold on master.
+tags: [renpy, code, architecture, feasibility, aio]
 ---
 
-This page is the **buildability proof**. Every system the wiki describes is implementable in vanilla Ren'Py 8 with no plugins, no modded engine, no Python C extensions. The patterns below are minimal but functional — paste them into a `.rpy` file and they run.
+This page is the **buildability proof**, now reconciled against the
+real scaffold. Every system the wiki describes is implementable in
+vanilla Ren'Py 8 (the AIO template tests against 8.2.1) with no
+plugins, no modded engine, no Python C extensions. The patterns
+below match the AIO template's conventions — see
+[Codebase Audit](/wiki/dev/codebase-audit) and
+[AIO Template Reference](/wiki/dev/aio-template) for the helpers
+they assume.
 
 > [!note]
 > Ren'Py is a VN engine, not a JRPG engine. Combat in this game is **menu-driven**, not animated turn-based with HP bars. That's not a downgrade — it's the right register for the Konosuba parody tone (the protagonist literally picks options from a JRPG menu while watching the girls fight). The wiki's "Lvl 99 / 9999 ATK" stats are flavor; the *resolution* is narrative.
+
+> [!warning] Audio: always use the helpers
+> The AIO template wraps `play music` and `play sound` in
+> `play_music()` and `play_sound()` Python helpers so audio
+> captions fire for caption-users. Every code sample below uses
+> those helpers. **Never** write `play music X fadein 2.0`
+> directly — it bypasses accessibility.
 
 ---
 
