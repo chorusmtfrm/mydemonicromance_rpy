@@ -139,12 +139,12 @@ export default function DashboardPage() {
 
   // surface a few priority pages
   const FEATURED_SLUGS = [
+    "dev/agent-brief",
+    "dev/implementation-roadmap",
+    "dev/pitfalls",
     "dev/codebase-audit",
     "dev/aio-template",
-    "mechanics/corruption",
-    "mechanics/cure-quest",
     "plot/endings",
-    "dev/variables",
   ]
   const featured = FEATURED_SLUGS
     .map((slug) => pages.find((p) => p.slug.join("/") === slug))
