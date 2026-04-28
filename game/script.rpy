@@ -1,6 +1,13 @@
-﻿# The script of the game goes in this file.
+# The script of the game goes in this file.
 
-# Set up LayeredImage Sprites
+################################################################################
+## AIO Template scaffolding (kept intact)
+################################################################################
+
+# Set up LayeredImage Sprites — the Eileen sprite ships with the AIO template.
+# We don't use her in the actual game flow, but the LayeredImage definition is
+# kept so any template-internal references continue to resolve cleanly.
+
 layeredimage eileen:
 
     group base auto:
@@ -16,20 +23,15 @@ layeredimage eileen:
 # This adds Eileen's headband to her sprite when True
 default casual = True
 
-# Declare characters used by this game. The color argument colorizes the
-# name of the character.
-
+# Template's Eileen character (kept defined but unused in the My Demonic Romance flow).
 define e = Character("Eileen", color="#f88787", image="eileen")
 define e_nvl = Character("Eileen", color="#f88787", kind=nvl, image="eileen")
 define e_bubble = Character(color="#f88787", kind=bubble, image="eileen")
 define nar_nvl = nvl_narrator
 
-## Splashscreen ############################################################
-## A portion of the game that plays at launch, before the main menu is shown.
-## https://www.renpy.org/doc/html/splashscreen_presplash.html
-
-## The animation is boring so I recommend using something else.
-## ATL documentation: https://www.renpy.org/doc/html/atl.html
+################################################################################
+## Splashscreen (template default — leave alone)
+################################################################################
 
 image splash_anim_1:
 
@@ -40,286 +42,384 @@ image splash_anim_1:
 default persistent.firstlaunch = False
 
 label splashscreen:
-    
+
     scene black
 
-    ## Here begins our splashscreen animation.
     show splash_anim_1
     show text "{size=60}Made with Ren'Py [renpy.version_only]{/s}":
         xalign 0.5 yalign 0.8 alpha 0.0
         pause 6.0
         linear 1.0 alpha 1.0
-    
-    ## The first time the game is launched, players cannot skip the animation.
+
     if not persistent.seen_splash:
-        
-        ## No input will be detected for the set time stated.
-        ## Set this to be a little longer than how long the animation takes.
+
         $ renpy.pause(8.5, hard=True)
- 
+
         $ persistent.seen_splash = True
-    
-    ## Players can skip the animation in subsequent launches of the game.
+
     else:
- 
+
         if renpy.pause(8.5):
- 
+
             jump skip_splash
 
     scene black
     with fade
- 
+
     label skip_splash:
- 
+
         pass
-    
+
     call screen content_warning
 
-    ## The first time the game is launched, players can set their accessibility settings.
     if not persistent.firstlaunch:
 
         call screen splash_settings
 
         call screen preferences
 
-        ## This screen will not appear in subsequent launches of the game when
-        ## the following variable becomes true.
         $ persistent.firstlaunch = True
 
     return
 
-## The game starts here.
+################################################################################
+## My Demonic Romance — Cast
+################################################################################
+
+# Player-customizable name. Default is "Kael" — the player can rename via
+# a future settings screen. Update this string in vars.rpy when that's wired.
+default mc_name = "Kael"
+
+# Protagonist. Muted gold to match the Konosuba-warm wiki theme. Speaks in
+# first person via the narrator for inner thoughts; mc for spoken lines.
+define mc = Character("[mc_name]", color="#c8a861")
+
+# Ryoka — overpowered warrior. Warm fire-red.
+define ry = Character("Ryoka", color="#d97757")
+
+# Yuriko — overpowered mage. Cool studious blue.
+define yu = Character("Yuriko", color="#7a8fcf")
+
+# Brennan — tavern keeper. Earthy brown for the friendly neighborhood barman.
+define br = Character("Brennan", color="#8a6f4c")
+
+# Unidentified silhouette — used during the cold open before the antagonist
+# is named. Color is the wiki's destructive burgundy to telegraph dread.
+define stranger = Character("???", color="#7a2230")
+
+################################################################################
+## My Demonic Romance — Canonical Game Variables
+################################################################################
+## These mirror the wiki's dev/variables reference. Set here so the very first
+## save file has every variable defined. New systems read these directly.
+
+# --- Time pressure ---
+default day_count = 1
+default time_of_day = "day"   # "day" or "night"
+
+# --- Per-girl affection (0–100) ---
+default ryoka_affection = 0
+default yuriko_affection = 0
+
+# --- Per-girl corruption (0–100) ---
+default ryoka_corruption = 0
+default yuriko_corruption = 0
+
+# --- Per-girl suspicion (hidden, 0–100, decays −1 per rest day) ---
+default ryoka_suspicion = 0
+default yuriko_suspicion = 0
+
+# --- Curse of the Mark (0 Pristine · 1 Marked · 2 Corrupted · 3 Bound) ---
+default curse_severity = 0
+
+# --- Route lock — set by the Day 45 Crucible event ---
+default route_locked = None  # None | "vanilla" | "ntr" | "split" | "tragedy"
+
+# --- Resources ---
+default gold = 50
+default inventory = {
+    "consumables": [],
+    "key_items": [],
+    "gifts": [],
+    "shady": [],
+}
+
+# --- Lore drip ---
+default memory_fragments = []
+default seen_fragments = set()
+
+# --- Combat habit telemetry (used by suspicion + ending matrix) ---
+default sabotage_count = 0
+default support_count = 0
+default watch_count = 0
+
+# --- Day-1-specific narrative flags (referenced below) ---
+default met_brennan = False
+default day1_combat_choice = None  # "support" | "sabotage" | "watch"
+
+################################################################################
+## My Demonic Romance — Day 1
+################################################################################
 
 label start:
 
-    # Show a background. This uses a placeholder by default, but you can
-    # add a file (named either "bg room.png" or "bg room.jpg") to the
-    # images directory to show it.
+    # Reset language so sound caption translations initialize properly.
+    # (Per the npckc accessibility tool's instructions.)
+    $ renpy.change_language(_preferences.language, force=True)
 
-    scene room
-
-    # This shows a character sprite.
-
-    show eileen neutral at center:
-
-        ## Sprite generated by Mannequin are fullbody, so we do need to
-        ## move Eileen down slightly so she's not floating about.
-        yoffset 250
-
-    # Placing the effect after both image statements will apply said
-    # effect on both images.
-    
-    with fade
-
-    # This plays our music file in a way that if audio captions are on,
-    # it will tell us the name of the song. This music plays at full volume
-    # after 2 seconds and fades out after 2 seconds when stopped.
-    $ play_music(garden,fadein=2.0,fadeout=2.0)
-
-    # This unlocks the the achievement with the corresponding name
+    # The 'beginning' achievement ships with the AIO template. We re-purpose
+    # it as "began Day 1." Future achievements get added in sbobcachievements.rpy.
     achieve beginning
 
-    # These display lines of dialogue.
+    # ---- Cold open: a tavern room at noon ----
+    scene room
+    with fade
 
-    e "You've created a new Ren'Py game."
+    $ play_music(garden, fadein=2.0, fadeout=2.0)
 
-    # This changes the sprite's expression
+    "Sunlight pries the curtains apart at an angle that suggests the morning has long since given up on me."
 
-    show eileen surprised with dissolve
+    "I open one eye. Then, after some negotiation, the other."
 
-    e "Once you add a story, pictures, and music, you can release it to the world!"
+    mc "...I am the Demon Lord of the Sundered Vale."
 
-    show eileen neutral with dissolve
+    mc "Level fifty. Sworn enemy of the kingdoms of light. Architect of seven minor cataclysms and one truly embarrassing wedding interruption."
 
-    e "Haha, sorry. Had to get that out of the way first."
+    mc "And I am hungover in a tavern bed, with eight silver to my name, because my party members ate the last of the venison while I was unconscious."
 
-    e "Thanks for downloading this All-In-One GUI Template! After you play through this script, be sure to open up the files and adjust the {color=#32CD32}options.rpy{/color}, {color=#32CD32}gui.rpy{/color}, and {color=#32CD32}screens.rpy{/color} to fit your own project's needs!"
+    "Somewhere downstairs, a cheer goes up. The tavern's day-drinkers have apparently found something to be excited about."
 
-    e "You can even make a copy of the entire {color=#32CD32}game{/color} folder and start your project from there."
+    "I have a guess what."
 
-    e_bubble "We recently updated the template to include the Bubble-style dialogue windows too, by the way!"
-    
-    e "So now, let's demonstrate some of the custom Accessibility Options."
-
-    e "When you run this project for the first time, you should have been able to adjust the Audio and Image Caption options."
-
-    e "I'll make some sounds now. If Audio Captions are on, you'll see a notification in the top-left corner describing the sound."
-    
-    # This plays our sound file in a way that if audio captions are on,
-    # it will describe the sound being played.
+    # ---- Brennan introduction (offscreen voice from below) ----
     $ play_sound(door)
 
-    e "Let's close this so the breeze doesn't mess up my hair..."
+    "The door at the bottom of the stairs creaks. A familiar voice carries up — friendly, hoarse, two parts soot to one part beer."
 
-    $ play_sound(drawer_open)
+    br "Up and at 'em, Lord Demon! Your women are downstairs scaring the regulars again!"
 
-    e "Let me look for a pen..."
+    mc "(They're not {i}my{/i} women.)"
 
-    $ play_sound(drawer_close)
+    mc "(They are. Allegedly. The party records list me as their leader. The party records also list our level distribution as fifty / ninety-nine / ninety-five, which is a polite way of saying that on a good day I am useful for opening jam jars.)"
 
-    e "Not in there?"
+    $ met_brennan = True
 
-    $ play_sound(drawer_open)
+    "I get up. The room is generous enough not to spin."
 
-    e "Maybe here?"
+    ic "[mc_name] crosses the room and descends the stairs."
 
-    $ play_sound(drawer_close)
+    scene black with fade
 
-    e "Found it!"
+    # ---- The tavern common room: Ryoka and Yuriko ----
+    $ play_music(concrete, fadein=1.5, fadeout=2.0)
 
-    e "If you had your Audio Captions on, you should have seen something appear in the notification tab."
+    scene room
+    with fade
 
-    e "Neat, right?"
+    "The common room is a mess of overturned chairs and overturned drinkers. In the center, two figures stand back-to-back."
 
-    e "Now let's test Image Captions."
+    ry "Yuriko, behind you!"
 
-    show eileen at right with move
+    yu "I {i}am{/i} behind me, Ryoka. We're back to back."
 
-    ic "Eileen walks to the right of the room."
+    ry "You know what I mean!"
 
-    e "Over here..."
+    "Ryoka — six feet of wound spring and red braid — pivots on her heel. Her sword leaves the scabbard so fast the air {i}flinches{/i}."
 
-    show eileen at left with move
+    "Yuriko — a head shorter, robes the color of a clean library — sketches a glyph in the air without looking up from her book."
 
-    ic "Eileen walks to the left of the room."
+    yu "Disjunction. Class three. Honestly, who summons a slime indoors?"
 
-    e "Now here..."
+    "There's a small wet sound. The slime, formerly the size of a cart, is now the size of regret."
 
-    show eileen at center with move
+    ry "Yu, was that necessary? I had it."
 
-    ic "Eileen walks to the center of the room."
+    yu "You had a {i}quarter{/i} of it. The other three quarters were about to digest a barmaid."
 
-    e "And there we go!"
+    "The tavern erupts in applause. Brennan ducks back behind the bar with the practiced grace of a man who has watched my party members redecorate his establishment more than once."
 
-    e "If you had your Image Captions on, then you should have seen some extra narration describing my movements."
+    br "On the house, ladies! Just — please — the {i}rugs.{/i}"
 
-    e "This is done with the special {color=#32CD32}{i}ic{/i}{/color} speaker tag we defined in {color=#32CD32}{i}accessibility.rpy{/i}{/color}."
+    # ---- Player notices the protagonist ----
+    ry "...where's Kael?"
 
-    e "Now, let's test the Screen Shake settings."
+    yu "Asleep. Probably. He was making small noises about 'tactical recovery' last night."
+
+    ry "He missed it again."
+
+    yu "He missed it again."
+
+    "I clear my throat from the stairwell. They both look up. Ryoka's smile is genuine and a little too bright; Yuriko's is the smile of someone tallying a column in a ledger."
+
+    ry "There he is! Hero of the hour, ten minutes too late!"
+
+    yu "Good morning, oh fearsome demon lord. I trust you slept well."
+
+    mc "(They love me. I think they love me. The mathematics of how each of them loves me is different — Ryoka loud, Yuriko quiet — and I can never quite catch them at it head-on.)"
+
+    mc "I — yes. Sorry. I had a tactical rest."
+
+    ry "Of course you did."
+
+    yu "Of course you did."
+
+    # ---- Mechanic teaser: the first encounter ----
+    "The tavern door bangs open. A second slime — bigger, meaner, the color of a bruise — pours into the doorway."
 
     $ shake()
 
-    show eileen surprised with dissolve
+    ic "The room shudders."
 
-    ic "The room shakes."
+    ry "Oh, come {i}on,{/i} two of them?"
 
-    e upset "If you had it on, did you notice how robust that Screen Shake was? That wasn't the classic {color=#32CD32}{i}hpunch{/i}{/color}."
+    yu "Statistically improbable. Almost like someone summoned them on purpose."
 
-    e"This time around, we added in a custom Shake function that is randomized each time, with varying levels of intensity you can choose from."
+    "Both of them turn to look at me. The look that says: {i}you are technically the leader of this party, what would you like to do.{/i}"
 
-    e "You can turn the screen shaking effect off in Preferences, just in case the motion makes you or your players sick. One more time."
+    "I have, give or take, three options."
 
-    $ shake()
+    menu:
+        "What does {i}[mc_name]{/i} do?"
 
-    ic "The room shakes again."
+        "Support — buy them an opening.":
+            $ day1_combat_choice = "support"
+            $ support_count += 1
+            $ ryoka_affection += 2
+            $ yuriko_affection += 2
 
-    e "Now let's try NVL Mode."
+            mc "Right. Distract it. {i}Lux Inversa.{/i}"
 
-    nar_nvl "NVL Mode is a different way of displaying text on the screen."
+            "I throw a level-fifty spell at the slime's eyestalks. It flinches. Not much — a slime's flinch is more of a slow shrug — but enough."
 
-    e_nvl "Unlike ADV, past lines of dialogue are still displayed until it is cleared off."
+            ry "There he is!"
 
-    nar_nvl "Usually NVL will cover the entire screen, but you can adjust the size of the window to only cover a certain part if need be."
+            yu "Window open — Ryoka, vertical, please."
+
+            ry "{i}Crescent Sundering!{/i}"
+
+            "The slime is, very suddenly, a memory."
+
+            yu "Clean. Efficient. Affection acknowledged."
+
+            ry "Don't say it like an accountant!"
+
+        "Sabotage — let them flounder. Just to see.":
+            $ day1_combat_choice = "sabotage"
+            $ sabotage_count += 1
+            $ ryoka_corruption += 3
+            $ yuriko_suspicion += 5
+
+            mc "(One small thing. Just to see.)"
+
+            "I {i}don't{/i} cast Lux Inversa. I let the moment pass. The slime gets a half-second of clean line at Ryoka's exposed flank — a half-second she has to spend rolling, not striking."
+
+            ry "Hh — !"
+
+            yu "Ryoka, {i}move{/i} —"
+
+            "Yuriko's glyph fires a beat late. They handle it. They always handle it. Ryoka comes up with a long pink scrape down her forearm and a expression I do not entirely recognize on her."
+
+            ry "...Kael, you didn't —"
+
+            mc "Sorry. Spell fizzled. Mana hangover."
+
+            yu "Mm."
+
+            "Yuriko looks at me for a count of three before she goes back to her book. The look is not angry. It is, somehow, much worse than angry. It is {i}taking notes.{/i}"
+
+        "Watch.":
+            $ day1_combat_choice = "watch"
+            $ watch_count += 1
+
+            "I fold my arms and lean against the banister."
+
+            "It takes them eleven seconds. I count. Yuriko's glyph, Ryoka's blade, a small explosion of slime that ruins another rug."
+
+            ry "Kael! A {i}little{/i} help next time?"
+
+            mc "You had it. You always have it."
+
+            yu "He's not wrong."
+
+            ry "That's not the {i}point —{/i}"
+
+    # ---- After the fight ----
+    stop music fadeout 2.0
+
+    "Brennan emerges from behind the bar with a damp rag and the expression of a man revising his rates."
+
+    br "Right. Stew's on. Drinks are not free anymore. {i}Especially{/i} not for the demon lord."
+
+    mc "(Eight silver. Eight.)"
+
+    # ---- End-of-Day stub: the hub-to-be ----
+    $ play_music(garden, fadein=2.0, fadeout=2.0)
+
+    "The afternoon stretches out in front of me. There are things I could do."
+
+    "I could spend the day with my party. I could find work. I could — if I were the kind of demon lord I used to be — wander down toward the part of town that respectable people don't go to."
+
+    "I could also just go back to bed."
+
+    menu:
+        "How does [mc_name] spend the rest of his day?"
+
+        "Drink at the tavern. Get to know my party.":
+            mc "(Affection is built in places like this. Or that's what the bards say.)"
+
+        "Look for paying work in town.":
+            mc "(Eight silver does not feed three.)"
+
+        "Walk down toward the lower district. Just to scout.":
+            mc "(I am not going to do anything. I am just looking. I will be the judge of that.)"
+
+        "Go back to bed.":
+            mc "(There is a perfectly good bed upstairs. The day is long. The ale is paid for. What's the worst that could happen.)"
+
+    # All four choices fall through to the same end-of-build screen for now.
+
+    scene black with fade
+    stop music fadeout 2.0
+
+    nar_nvl "End of Day 1."
+
+    nar_nvl "This is an early development build of {b}My Demonic Romance{/b}. The systems behind the scenes — affection, corruption, suspicion, the Curse of the Mark — are tracking your choice from the slime fight, but the days that follow haven't been written yet."
+
+    nar_nvl "Thank you for trying it. More days are coming."
 
     nvl clear
 
-    e_nvl "Not all games may need to use both ADV and NVL, but it's nice to have options as a developer."
-
-    e_nvl "With that said, let's go somewhere else."
-
-    nar_nvl "Eileen wonders where she should travel to."
-
-    stop music fadeout 1.0
-
-    ## This ends the replay mode segment. Doesn't affect normal gameplay.
     $ renpy.end_replay()
 
-    menu (nvl=True):
+    return
 
-        "Office":
+################################################################################
+## End Credits (template default — leave alone)
+################################################################################
 
-            ## This empty label is solely for replay mode purposes.
-
-            label office:
-
-                pass
-
-            e "To the office? Okay...?"
-
-            achieve office
-
-            $ play_music(business,fadein=2.0,fadeout=2.0)
-
-            scene future_office
-            show eileen angry at center:
-                yoffset 250
-            with fade
-
-            e "Ugh, you know that saying about \"all work and no play,\" right?"
-
-            "Eileen seems bothered by something."
-
-        "Beach":
-
-            label beach:
-
-                pass
-
-            e "The beach sounds fun!"
-
-            achieve beach
-
-            $ play_music(summer,fadein=2.0,fadeout=2.0)
-
-            hide eileen with dissolve
-            $ casual = False
-
-            scene sort_of_beautiful_beach_day
-            show eileen summer neutral at center:
-                yoffset 250
-            with fade
-
-            e "Hehe, I have a swimsuit now!"
-
-            "Eileen seems pleased with herself."
-
-    "Remember to check the History screen if you have not done so yet."
-
-    ## This ends the replay mode segment. Doesn't affect normal gameplay.
-    $ renpy.end_replay()
-
-## End Credits
 label credits:
 
-    ## We hide the quickmenu for the last part of the game so they don't
-    ## appear at the bottom.
     $ quick_menu = False
 
-    ## We hide the textbox as well so it doesn't mess with things
     window hide
 
     scene black with fade
 
-    ## Find "End Credits Scroll" in extras.rpy to change text.
     call screen credits(15.0)
 
     $ persistent.credits_seen = True
 
     scene black
     with fade
-    
-    # Players can skip the credits in subsequent playthroughs of the game.
+
     label skip_credits:
- 
+
         pass
 
-    ## Makes [result] work. This needs to be near the end of the game
-    ## for it to work properly.
     $ percent()
 
-    ## We display a screen that shows how much the player has seen and played of the game.
     show screen results
-    
+
     centered "Fin"
 
     hide screen results
@@ -328,28 +428,20 @@ label credits:
 
         pass
 
-    ## Do you want to leave some author's notes or a hidden message for your dedicated fans?
-    ## This will check if they've seen all that the game has to offer.
     else:
 
         if readtotal == 100:
 
             achieve completionist
 
-            ## Due to the way that $ percent() works, we need to make this a text displayable
-            ## or else it'll try to count it too.
             show text "{size=60}{color=#ffffff}You've unlocked a special message.\nAccess it through the Extras Menu.{/color}{/s}":
                 xalign 0.5 yalign 0.5 alpha 0.0
                 linear 1.0 alpha 1.0
 
             $ persistent.game_clear = True
 
-            ## The game will show our text displayable so the player can read it
-            ## And only continue when there is input
             pause
 
-    ## We re-enable the quickscreen as the credits are over.
     $ quick_menu = True
 
-    # This ends the game.
     return
