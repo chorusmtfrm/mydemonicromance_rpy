@@ -23,15 +23,19 @@ screen content_warning():
 
             label _("Content Warning") xalign 0.5
 
-            text _("This is just a GUI template for projects, but if you have sensitive content that may not be suitable for all audience, this is a screen to alert players ahead of time.") text_align 0.5 xalign 0.5
+            text _("My Demonic Romance is an adult visual novel intended for players 18 years of age or older. It contains content some players may find distressing.") text_align 0.5 xalign 0.5
 
             null height 20
 
-            text _("List your content warnings here!") text_align 0.5 xalign 0.5
+            text _("Themes and depictions include:\nexplicit sexual content · NTR / cuckolding · sexual corruption and manipulation · cursed impotence · partner sabotage and betrayal · alcohol and recreational drug use · branching dark endings including character loss") text_align 0.5 xalign 0.5
 
             null height 40
 
-            text _("By clicking confirm, you affirm that you are willing to interact with such content.") text_align 0.5 xalign 0.5
+            text _("All characters depicted in sexual situations are adults of age 18 or older. Player choices determine which content appears in your playthrough; routes can be avoided.") text_align 0.5 xalign 0.5
+
+            null height 30
+
+            text _("By clicking Confirm, you affirm that you are at least 18 years old and consent to engaging with this content.") text_align 0.5 xalign 0.5
 
             textbutton _("Confirm") action Return() xalign 0.5 text_align 0.5 text_size 55
     
