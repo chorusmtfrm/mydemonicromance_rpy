@@ -9,12 +9,27 @@ summary: Reconciliation between the wiki's design and the actual scaffold on mas
 
 # Codebase Audit
 
-Snapshot of `chorusmtfrm/mydemonicromance_rpy` on `master` as of the
-connection date. The repo is the **AIO GUI Template v2.7** by BáiYù
-(with code from bobcgames, TheoMinute, npckc), MIT-licensed, tested
-on Ren'Py 7.7.1 and 8.2.1. Nothing project-specific has been added
-yet — this is a clean scaffold with demo content for the
-`Eileen` placeholder character.
+Snapshot of `chorusmtfrm/mydemonicromance_rpy` on `main`, current as
+of the **Day 1** commit (`f4e340f`). The repo is built on the
+**AIO GUI Template v2.7** by BáiYù (with code from bobcgames,
+TheoMinute, npckc), MIT-licensed, tested on Ren'Py 7.7.1 and 8.2.1.
+
+**What's been changed from the template:**
+
+- `options.rpy` — rebranded (config name, version `0.1.0`, build name,
+  save dir, about text). AIO credits preserved per the MIT license.
+- `extras.rpy` — content warning rewritten with real warnings (NTR,
+  sexual content, manipulation, dark endings) and 18+ affirmation.
+- `script.rpy` — AIO demo flow (Eileen / office / beach) replaced
+  with the actual Day 1 opening, canonical game variables, and three-
+  button combat introduction. See [Day 1](/wiki/plot/day-1).
+
+**What's still untouched template scaffolding:** `gui.rpy`,
+`screens.rpy`, `accessibility.rpy`, `definitions.rpy`,
+`0bobcachievements.rpy`, `sbobcachievements.rpy`. The Eileen
+LayeredImage and `e` / `e_nvl` / `e_bubble` characters are kept
+defined but unused, so any internal template references continue
+to resolve.
 
 ## Repo Layout
 
@@ -26,17 +41,17 @@ opened standalone. All project work happens inside `game/`.
 
 ## `game/` Inventory
 
-| File | Lines | Role | Touch? |
-| --- | ---: | --- | --- |
-| `script.rpy` | 354 | Splashscreen + main `start` label, Eileen demo content | Replace |
-| `definitions.rpy` | 119 | Resource auto-loader | See note ↓ |
-| `options.rpy` | 240 | `config.name`, version, build name, mixers, transitions | Customize |
-| `gui.rpy` | 498 | GUI styling — colors, fonts, sizing | Customize |
-| `screens.rpy` | 1800 | Custom screens with accessibility hooks | Read before editing |
-| `extras.rpy` | 655 | Content warning, splash settings, gallery, replay, music room, credits | Customize |
-| `accessibility.rpy` | 428 | Audio captions, image captions, screen shake, NVL helpers | Read carefully — provides core helpers |
-| `0bobcachievements.rpy` | 123 | Achievement framework | Add our IDs |
-| `sbobcachievements.rpy` | 74 | Achievement display screen | Customize visuals |
+| File | Status | Role |
+| --- | --- | --- |
+| `script.rpy` | **Day 1 authored** | Splashscreen + cast + canonical vars + Day 1 flow + credits |
+| `options.rpy` | **Rebranded** | `config.name`, version `0.1.0`, build name, mixers, about text |
+| `extras.rpy` | **Content warning customized** | Splash settings, gallery, replay, music room, credits scroll |
+| `definitions.rpy` | Untouched (dormant) | Resource auto-loader, see warning below |
+| `gui.rpy` | Untouched | GUI styling — colors, fonts, sizing |
+| `screens.rpy` | Untouched | Custom screens with accessibility hooks |
+| `accessibility.rpy` | Untouched | Audio captions, image captions, screen shake, NVL helpers |
+| `0bobcachievements.rpy` | Untouched | Achievement framework — only the template's `beginning` is repurposed |
+| `sbobcachievements.rpy` | Untouched | Achievement display screen |
 
 > [!warning] `definitions.rpy` is broken in Ren'Py 8
 > The file is a resource auto-loader that overwrote itself with discovered
